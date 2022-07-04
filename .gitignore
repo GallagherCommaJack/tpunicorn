@@ -6,3 +6,5 @@ perf.log
 perf.svg
 /build/
 /dist/
+.python-version
+requirements.txt
