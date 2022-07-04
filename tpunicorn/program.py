@@ -397,23 +397,32 @@ def reimage(tpu, zone, project, version, yes, dry_run, async_):
 @click.option('--retry', type=int, help="if the TPU creation fails (due to capacity errors or otherwise), "
                                         "retry the creation command after this many seconds")
 @click.option('--retry-randomness', type=float, default=1.0, help="multiply retry time by a float between 1 and retry_randomness")
-def recreate(tpu, zone, project, version, yes, dry_run, preempted, command, retry, retry_randomness, **kws):
+@click.option('--accelerator_type', type=click.STRING, default=None, help="fallback accelerator type if TPU isn't found")
+def recreate(tpu, zone, project, version, yes, dry_run, preempted, command, retry, retry_randomness, accelerator_type, **kws):
   """
   Recreates a TPU, optionally switching the system software to the specified TF_VERSION.
   """
-  tpu = tpunicorn.get_tpu(tpu=tpu, zone=zone, project=project)
-  click.echo('Current status of TPU {} as of {}:'.format(tpunicorn.tpu.parse_tpu_id(tpu), tpunicorn.tpu.get_timestamp()))
-  print_tpu_status_headers()
-  print_tpu_status(tpu)
-  if preempted and not is_preempted(tpu, zone=zone, project=project):
-    return
-  click.echo('')
-  delete = tpunicorn.delete_tpu_command(tpu, zone=zone, project=project)
-  create = tpunicorn.create_tpu_command(tpu, zone=zone, project=project, version=version)
+  try:
+    tpu = tpunicorn.get_tpu(tpu=tpu, zone=zone, project=project)
+    click.echo('Current status of TPU {} as of {}:'.format(tpunicorn.tpu.parse_tpu_id(tpu), tpunicorn.tpu.get_timestamp()))
+    print_tpu_status_headers()
+    print_tpu_status(tpu)
+    if preempted and not is_preempted(tpu, zone=zone, project=project):
+      return
+    click.echo('')
+    delete = tpunicorn.delete_tpu_command(tpu, zone=zone, project=project)
+    do_delete = True
+  except Exception as e:
+    print(f"Error getting TPU status: {e}")
+    do_delete = False
+  create = tpunicorn.create_tpu_command(tpu, zone=zone, project=project, version=version, accelerator_type=accelerator_type)
   def wait():
     wait_healthy(tpu, zone=zone, project=project)
   if not yes:
-    print_step('Step 1: delete TPU.', delete)
+    if do_delete:
+      print_step('Step 1: delete TPU.', delete)
+    else:
+      print('No TPU found, so skipping step 1: delete TPU.')
     print_step('Step 2: create TPU.', create)
     print_step('Step 3: wait until TPU is HEALTHY.', wait)
     if len(command) > 0:
@@ -421,7 +430,8 @@ def recreate(tpu, zone, project, version, yes, dry_run, preempted, command, retr
         print_step('Step {}: run this command:'.format(i+4), cmd)
     if not click.confirm('Proceed? {}'.format('(dry run)' if dry_run else '')):
       return
-  do_step('Step 1: delete TPU...', delete, dry_run=dry_run)
+  if do_delete:
+    do_step('Step 1: delete TPU...', delete, dry_run=dry_run)
   while do_step('Step 2: create TPU...', create, dry_run=dry_run) != 0:
     if retry is None:
       click.echo('TPU {} failed to create (is the region out of capacity?)'.format(tpunicorn.tpu.parse_tpu_id(tpu)), err=True)
@@ -471,8 +481,12 @@ def ssh(tpu, zone, project, yes, dry_run, ssh_flag):
 @click.option('-c', '--command', type=click.STRING, multiple=True,
               help="After the TPU has been recreated and is HEALTHY, run this command."
                    " (Useful for killing a training session after the TPU has been recreated.)")
+@click.option('--accelerator_type', type=click.STRING, default=None, help="fallback accelerator type if TPU isn't found")
+@click.option('--version', type=click.STRING, metavar="<TF_VERSION>",
+              help="By default, the TPU is recreated with the same system software version."
+                   " You can set this to use a specific version, e.g. `nightly`.")
 @click.pass_context
-def babysit(ctx, tpu, zone, project, dry_run, interval, command):
+def babysit(ctx, tpu, zone, project, dry_run, interval, command, **kws):
   """Checks TPU every INTERVAL seconds. Recreates the TPU if (and only if) the tpu has preempted."""
   # cmd = cli.get_command(ctx, 'babysit')
   # ctx = click.Context(cmd, parent=ctx, ignore_unknown_options=True)
