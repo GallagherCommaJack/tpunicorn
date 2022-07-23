@@ -570,6 +570,7 @@ def reimage(tpu, zone, project, version, yes, dry_run, async_):
     default=None,
     help="fallback accelerator type if TPU isn't found",
 )
+@click.option("-pre/-np", "--preemptible/--non-preemptible", default=False)
 def recreate(
     tpu,
     zone,
@@ -583,6 +584,7 @@ def recreate(
     retry,
     retry_randomness,
     accelerator_type,
+    preemptible,
     **kws,
 ):
     """
@@ -612,6 +614,7 @@ def recreate(
         version=version,
         service_account=service_account,
         accelerator_type=accelerator_type,
+        preemptible=preemptible,
     )
 
     def wait():
@@ -727,6 +730,7 @@ def ssh(tpu, zone, project, yes, dry_run, ssh_flag):
     metavar="<service_account>",
     help="By default, the TPU is recreated with the default service account.",
 )
+@click.option("-pre/-np", "--preemptible/--non-preemptible", default=False)
 @click.pass_context
 def babysit(ctx, tpu, zone, project, dry_run, interval, command, **kws):
     """Checks TPU every INTERVAL seconds. Recreates the TPU if (and only if) the tpu has preempted."""
@@ -826,3 +830,18 @@ def main(*args, prog_name="tpunicorn", auto_envvar_prefix="TPUNICORN", **kws):
 
 if __name__ == "__main__":
     main()
+"""
+
+
+
+pu babysit sr_64_1 \
+  --accelerator_type v4-64 --version "v2-alpha-tpuv4" --service_account "tpu-access@dreammachines.iam.gserviceaccount.com" --project dreammachines \
+  -c "ml run dreamtpu 'gsutil cat gs://mdj-vidnd/code_folders/k-diffusion-jax-sr.tar.gz | tar xzf - && cd code/k-diffusion-jax/ && source ./setup.sh; sleep 10; source ./setup.sh; sleep 10; python3 -m train.train_sr --config configs/runs/sr_2.yaml --checkpoint.run_name imagen-sr-2-64 2>>/tmp/log.err >>/tmp/log.out' --project dreammachines"
+
+
+
+
+
+
+"""
+I
