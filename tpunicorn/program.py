@@ -598,8 +598,8 @@ def recreate(
             )
         )
         print_tpu_status_headers()
-        print_tpu_status(tpu)
-        if preempted and not is_preempted(tpu, zone=zone, project=project):
+        is_healthy = check_healthy(tpu, zone=zone, project=project)
+        if preempted and is_healthy:
             return
         click.echo("")
         delete = tpunicorn.delete_tpu_command(tpu, zone=zone, project=project)
