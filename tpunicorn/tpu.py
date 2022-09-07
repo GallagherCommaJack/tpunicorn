@@ -903,8 +903,7 @@ def parse_tpu_data_disk(tpu, disk_index=0):
 
 
 def is_tpu_vm(tpu, project=None):
-    tpu = get_tpu(tpu, silent=True, project=project)
-    return tpu is not None and parse_tpu_version(tpu).startswith("v2")
+    return True
 
 
 def format_args(tpu, project=None):
