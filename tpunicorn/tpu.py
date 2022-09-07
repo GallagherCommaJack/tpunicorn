@@ -101,12 +101,7 @@ def build_opt(k, v):
 def build_commandline(cmd, tpu_name, *args, **kws):
     # if 'zone' in kws:
     #   kws['zone'] = expand_zone_abbreviations(kws['zone'])
-    if (
-        is_tpu_vm(tpu_name, project=kws.get("project"))
-        and "tpu-vm" not in cmd
-        or kws.get("version", "").startswith("v2")
-    ):
-        cmd = cmd.replace("gcloud compute tpus", "gcloud alpha compute tpus tpu-vm")
+    cmd = cmd.replace("gcloud compute tpus", "gcloud alpha compute tpus tpu-vm")
     return " ".join(
         [cmd]
         + [shellquote(x) for x in [tpu_name, *args]]

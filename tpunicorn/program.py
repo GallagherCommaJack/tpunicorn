@@ -249,9 +249,9 @@ def do_step(
     "-v",
     "--version",
     type=click.STRING,
-    metavar='[VERSION; default="v2-alpha"]',
-    default="v2-alpha",
-    help="By default, the TPU version is v2-alpha, which means it's created as a TPU VM."
+    metavar='[VERSION; default="tpu-vm-v4-base"]',
+    default="tpu-vm-v4-base",
+    help="By default, the TPU version is tpu-vm-v4-base, which means it's created as a TPU VM."
     " If you want to create a regular Tensorflow TPU, you can do so with e.g. --version nightly or --version 1.15.3",
 )
 @click.option(
@@ -328,7 +328,7 @@ def create(
     is_v2 = (version is not None) and version.startswith("v2")
     if not is_v2 and data_disk is not None:
         raise ValueError(
-            "--data-disk can only be specified for TPU VMs; try --version v2-alpha"
+            "--data-disk can only be specified for TPU VMs; try --version tpu-vm-v4-base"
         )
     if (
         range is None and index >= 0 and not is_v2
@@ -835,7 +835,7 @@ if __name__ == "__main__":
 
 
 pu babysit sr_64_1 \
-  --accelerator_type v4-64 --version "v2-alpha-tpuv4" --service_account "tpu-access@dreammachines.iam.gserviceaccount.com" --project dreammachines \
+  --accelerator_type v4-64 --version "tpu-vm-v4-base-tpuv4" --service_account "tpu-access@dreammachines.iam.gserviceaccount.com" --project dreammachines \
   -c "ml run dreamtpu 'gsutil cat gs://mdj-vidnd/code_folders/k-diffusion-jax-sr.tar.gz | tar xzf - && cd code/k-diffusion-jax/ && source ./setup.sh; sleep 10; source ./setup.sh; sleep 10; python3 -m train.train_sr --config configs/runs/sr_2.yaml --checkpoint.run_name imagen-sr-2-64 2>>/tmp/log.err >>/tmp/log.out' --project dreammachines"
 
 
