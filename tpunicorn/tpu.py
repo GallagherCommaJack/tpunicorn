@@ -847,6 +847,8 @@ def _format_args(tpu):
 def parse_tpu_preemptible(tpu):
     return tpu.get("schedulingConfig", {"preemptible": False}).get("preemptible", False)
 
+def parse_tpu_reserved(tpu):
+    return tpu.get("schedulingConfig", {"reserved": False}).get("reserved", False)
 
 def parse_tpu_ip(tpu, internal_only=False):
     master = tpu["networkEndpoints"][0]
@@ -957,6 +959,7 @@ def create_tpu_command(
     subnetwork=None,
     range=None,
     preemptible=None,
+    reserved=None,
     async_=False,
     data_disk=None,
     service_account=None,
@@ -975,6 +978,8 @@ def create_tpu_command(
             description = parse_tpu_description(tpu)
         if preemptible is None:
             preemptible = True if parse_tpu_preemptible(tpu) else None
+        if reserved is None:
+            reserved = True if parse_tpu_reserved(tpu) else None
         if network is None:
             network = parse_tpu_network(tpu)
         if subnetwork is None:
@@ -1011,6 +1016,7 @@ def create_tpu_command(
         version=version,
         accelerator_type=accelerator_type,
         preemptible=preemptible,
+        reserved=reserved,
         description=description,
         async_=async_,
         data_disk=data_disk,

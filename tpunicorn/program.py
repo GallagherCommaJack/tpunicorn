@@ -279,6 +279,7 @@ def do_step(
     "-sn", "--subnetwork", metavar="[SUBNETWORK]", type=click.STRING, default=None
 )
 @click.option("-pre/-np", "--preemptible/--non-preemptible", default=True)
+@click.option("-res/-nr", "--reserved/--non-reserved", default=True)
 @click.option("-r", "--range", metavar="[RANGE]", type=click.STRING, default=None)
 @click.option("-p", "--project", metavar="[PROJECT]", type=click.STRING, default=None)
 @click.option("-y", "--yes", is_flag=True)
@@ -296,6 +297,7 @@ def create(
     network,
     subnetwork,
     preemptible,
+    reserved,
     range,
     project,
     yes,
@@ -367,6 +369,7 @@ def create(
         network=network,
         subnetwork=subnetwork,
         preemptible=preemptible,
+        reserved=reserved,
         range=range,
         project=project,
         data_disk=data_disk,
@@ -571,6 +574,7 @@ def reimage(tpu, zone, project, version, yes, dry_run, async_):
     help="fallback accelerator type if TPU isn't found",
 )
 @click.option("-pre/-np", "--preemptible/--non-preemptible", default=False)
+@click.option("-res/-nr", "--reserved/--non-reserved", default=False)
 def recreate(
     tpu,
     zone,
@@ -585,6 +589,7 @@ def recreate(
     retry_randomness,
     accelerator_type,
     preemptible,
+    reserved,
     **kws,
 ):
     """
@@ -615,6 +620,7 @@ def recreate(
         service_account=service_account,
         accelerator_type=accelerator_type,
         preemptible=preemptible,
+        reserved=reserved,
     )
 
     def wait():
@@ -731,6 +737,7 @@ def ssh(tpu, zone, project, yes, dry_run, ssh_flag):
     help="By default, the TPU is recreated with the default service account.",
 )
 @click.option("-pre/-np", "--preemptible/--non-preemptible", default=False)
+@click.option("-res/-nr", "--reserved/--non-reserved", default=False)
 @click.pass_context
 def babysit(ctx, tpu, zone, project, dry_run, interval, command, **kws):
     """Checks TPU every INTERVAL seconds. Recreates the TPU if (and only if) the tpu has preempted."""
